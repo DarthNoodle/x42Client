@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using x42Client.Responses;
 using x42Client.Utils.Logging;
-
+using x42Client.Utils.Validation;
 
 namespace x42Client
 {
@@ -22,8 +22,10 @@ namespace x42Client
                 if (string.IsNullOrWhiteSpace(blockHash)) { throw new ArgumentNullException(nameof(blockHash), "Block Hash Cannot Be NULL/Empty!"); }
                 
                 GetBlockResponse response = await base.SendGet<GetBlockResponse>($"api/BlockStore/block?Hash={blockHash}&ShowTransactionDetails={showTX}&OutputJson=true");
+                Guard.Null(response, nameof(response), $"NULL Data Returned For The api/BlockStore/block Call With Block Hash '{blockHash}'");
 
-                //todo: finish implementation
+
+                return response;
             }
             catch (Exception ex)
             {

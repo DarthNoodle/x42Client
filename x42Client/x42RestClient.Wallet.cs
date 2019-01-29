@@ -8,11 +8,75 @@ using System.Text;
 using System.Threading.Tasks;
 using x42Client.x42.Responses;
 using x42Client.Requests;
+using x42Client.Enums;
 
 namespace x42Client
 {
+    /*
+     [DONE] /api/Wallet/mnemonic
+     /api/Wallet/create
+     /api/Wallet/load
+     /api/Wallet/recover
+     /api/Wallet/recover-via-extpubkey
+     [DONE] /api/Wallet/general-info
+     [DONE] /api/Wallet/history
+     [DONE] /api/Wallet/balance
+     [DONE] /api/Wallet/received-by-address
+     /api/Wallet/maxbalance
+     /api/Wallet/spendable-transactions
+     /api/Wallet/estimate-txfee
+     [DONE] /api/Wallet/build-transaction
+     /api/Wallet/send-transaction
+     [DONE] /api/Wallet/files
+     [DONE] /api/Wallet/account
+     [DONE] /api/Wallet/accounts
+     /api/Wallet/unusedaddress
+     [DONE] /api/Wallet/unusedaddresses
+     [DONE] /api/Wallet/addresses
+     [DONE] /api/Node/validateaddress
+     /api/Wallet/remove-transactions
+     /api/Wallet/extpubkey
+     /api/Wallet/sync
+     /api/Wallet/syncfromdate
+     /api/Wallet/splitcoins
+     */
     public partial class x42RestClient
     {
+
+        /// <summary>
+        /// Generates A New Mnemonic Foe Use In Creating A Wallet
+        /// </summary>
+        /// <param name="language">What Language To Use (Default: English)</param>
+        /// <param name="wordCount">How Many Words To Generate (Default 24)</param>
+        public async Task<string> CreateMnemonic(MnemonicWordCount wordCount = MnemonicWordCount.Words_24, MnemomicLanguage language = MnemomicLanguage.English)
+        {
+            try
+            {
+                string languageParam = "English";
+
+                switch (language)
+                {
+                    case MnemomicLanguage.ChineseSimplified: languageParam = "ChineseSimplified"; break;
+                    case MnemomicLanguage.ChineseTraditional: languageParam = "ChineseTraditional"; break;
+                    case MnemomicLanguage.English: break; // its the default
+                    case MnemomicLanguage.French: languageParam = "French"; break;
+                    case MnemomicLanguage.Japanese: languageParam = "Japanese"; break;
+                    case MnemomicLanguage.Spanish: languageParam = "Spanish"; break;
+                }//end of switch (language)
+
+                string response = await base.SendGet<string>($"api/Wallet/mnemonic?language={languageParam}&wordCount=${wordCount}");
+
+                Guard.Null(response, nameof(response), "'api/Wallet/mnemonic' API Response Was Null!");
+
+                return response;
+            }
+            catch(Exception ex)
+            {
+                Logger.Fatal($"An Error '{ex.Message}' Occured When Creating a Mnemonic With The Paramiters Language '{language}', Word Count '{wordCount}'", ex);
+                throw;
+            }//end of try-catch
+        }//end of public async Task<string> CreateMnemonic(MnemomicLanguage language, MnemonicWordCount wordCount)
+
         /// <summary>
         /// Validates Whether The Supplied Address Is Correct
         /// </summary>
@@ -67,6 +131,59 @@ namespace x42Client
                 throw;
             }//end of try-catch
         }//end of public async Task<WalletGeneralInfoResponse> GetWalletGeneralInfo()
+
+        /// <summary>
+        /// Generate A New Account In The Wallet
+        /// </summary>
+        /// <param name="walletName">Wallet Name</param>
+        /// <param name="password">Wallet Password</param>
+        /// <returns></returns>
+        public async Task<string> CreateAccount(string walletName, string password)
+        {
+            try
+            {
+                Guard.Null(walletName, nameof(walletName), "Unable To Create Wallet Account, Provided Name Is NULL/Empty!");
+                Guard.Null(password, nameof(password), "Unable To Create Wallet Account, Provided Password Is NULL/Empty!");
+
+                CreateAccountRequest request = new CreateAccountRequest
+                {
+                    walletName = walletName,
+                    password = password
+                };
+
+                string response = await base.SendPostJSON<string>("api/Wallet/account", request);
+
+                Guard.Null(response, nameof(response), "'api/Wallet/account' API Response Was Null!");
+
+                return response;
+            }
+            catch(Exception ex)
+            {
+                Logger.Fatal($"An Error '{ex.Message}' Occured When Creating Wallet Account Info, For Wallet '{walletName.Trim()}'!", ex);
+                throw;
+            }//end of try-catch
+        }//end of public async Task<string> CreateAccount(string walletName, string password)
+
+        /// <summary>
+        /// Gets The Physical Wallet File Paths
+        /// </summary>
+        public async Task<GetWalletFilesResponse> GetWalletFiles()
+        {
+            try
+            {
+                GetWalletFilesResponse response = await base.SendGet<GetWalletFilesResponse>("api/Wallet/files");
+
+                Guard.Null(response, nameof(response), "'api/Wallet/files' API Response Was Null!");
+
+                return response;
+            }
+            catch(Exception ex)
+            {
+                Logger.Fatal($"An Error '{ex.Message}' Occured When Getting Wallet File Paths!!", ex);
+
+                throw;
+            }
+        }//end of public async Task<GetWalletFilesResponse> GetWalletFiles()
 
         /// <summary>
         /// Gets All Accounts Within The Wallet
@@ -151,6 +268,30 @@ namespace x42Client
                 throw;
             }//end of try-catch
         }
+
+        /// <summary>
+        /// Gets The Balence Info For An Address In A Wallet
+        /// </summary>
+        /// <param name="address">Address To Check</param>
+        /// <returns></returns>
+        public async Task<GetRecievedAddressInfoResponse> GetRecievedAddressBalence(string address)
+        {
+            try
+            {
+                Guard.AssertTrue(await this.ValidateAddress(address.Trim()), $"Supplied Address '{address.Trim()}' Is Not Valid!");
+
+                GetRecievedAddressInfoResponse response = await base.SendGet<GetRecievedAddressInfoResponse>($"api/Wallet/received-by-address?Address={address.Trim()}");
+
+                Guard.Null(response, nameof(response), "'api/Wallet/received-by-address' API Response Was Null!");
+
+                return response;
+            }
+            catch(Exception ex)
+            {
+                Logger.Fatal($"An Error '{ex.Message}' Occured When Getting Addresses Balence, Address'{address.Trim()}'!", ex);
+                throw;
+            }//end of try-catch
+        }//end of public async Task<GetRecievedAddressInfoResponse> GetRecievedAddressBalence(string address)
 
         /// <summary>
         /// Gets The Balence of The Wallet
