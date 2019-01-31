@@ -2,9 +2,9 @@
 using x42Client.Utils.Validation;
 using System;
 using System.Threading.Tasks;
-using x42Client.x42.Responses;
+using x42Client.RestClient.Responses;
 
-namespace x42Client
+namespace x42Client.RestClient
 {
     public partial class x42RestClient
     {

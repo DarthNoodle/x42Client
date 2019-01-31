@@ -1,4 +1,4 @@
-﻿namespace x42Client.x42.Responses
+﻿namespace x42Client.RestClient.Responses
 {
     public class GetWalletAddressesResponse
     {

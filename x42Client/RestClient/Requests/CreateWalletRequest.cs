@@ -1,4 +1,4 @@
-﻿namespace x42Client.Requests
+﻿namespace x42Client.RestClient.Requests
 {
     public class CreateWalletRequest
     {

@@ -1,16 +1,15 @@
-﻿using x42Client.Responses;
-using x42Client.Utils.Logging;
+﻿using x42Client.Utils.Logging;
 using x42Client.Utils.Validation;
 using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using x42Client.x42.Responses;
-using x42Client.Requests;
 using x42Client.Enums;
+using x42Client.RestClient.Responses;
+using x42Client.RestClient.Requests;
 
-namespace x42Client
+namespace x42Client.RestClient
 {
     /*
      [DONE] /api/Wallet/mnemonic

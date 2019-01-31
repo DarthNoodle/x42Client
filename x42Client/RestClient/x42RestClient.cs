@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
-using x42Client.Responses;
+using x42Client.RestClient.Responses;
 using x42Client.Utils.Logging;
 using x42Client.Utils.Validation;
 using x42Client.Utils.Web;
 
-namespace x42Client
+namespace x42Client.RestClient
 {
     public partial class x42RestClient : APIClient
     {

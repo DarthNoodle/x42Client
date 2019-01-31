@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using x42Client.Utils.Logging;
 using x42Client.Utils.Validation;
 
-namespace x42Client
+namespace x42Client.RestClient
 {
     public partial class x42RestClient
     {
