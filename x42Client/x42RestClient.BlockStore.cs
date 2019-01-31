@@ -57,6 +57,5 @@ namespace x42Client
                 throw;
             }//end of try-catch
         }//end of public async Task<GetBlockResponse> GetBlock(ulong blockHeight, bool showTX = true)
-
     }//end of class
 }

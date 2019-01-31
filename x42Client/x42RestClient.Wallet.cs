@@ -14,7 +14,7 @@ namespace x42Client
 {
     /*
      [DONE] /api/Wallet/mnemonic
-     /api/Wallet/create
+     [DONE] /api/Wallet/create
      /api/Wallet/load
      /api/Wallet/recover
      /api/Wallet/recover-via-extpubkey
@@ -23,7 +23,7 @@ namespace x42Client
      [DONE] /api/Wallet/balance
      [DONE] /api/Wallet/received-by-address
      /api/Wallet/maxbalance
-     /api/Wallet/spendable-transactions
+     [DONE]/api/Wallet/spendable-transactions
      /api/Wallet/estimate-txfee
      [DONE] /api/Wallet/build-transaction
      /api/Wallet/send-transaction
@@ -42,6 +42,33 @@ namespace x42Client
      */
     public partial class x42RestClient
     {
+
+        /// <summary>
+        /// Gets a List of Spendable TX's
+        /// </summary>
+        /// <param name="walletName">Name of Wallet</param>
+        /// <param name="account">Name of Accounts</param>
+        /// <param name="minConfirms">Minimum # of Confirmations</param>
+        /// <returns>List of TX's</returns>
+        public async Task<GetSpendableTXResponse> GetSpendableTransactions(string walletName, string account, int minConfirms = 50)
+        {
+            try
+            {
+                Guard.Null(walletName, nameof(walletName), "Wallet Name Cannot Be NULL/Empty!");
+                Guard.Null(account, nameof(account), "Wallet Account Cannot Be NULL/Empty!");
+
+                GetSpendableTXResponse response = await base.SendGet<GetSpendableTXResponse>($"api/Wallet/spendable-transactions?WalletName={walletName}&AccountName={WebUtility.UrlEncode(account)}&MinConfirmations={minConfirms}");
+                Guard.Null(response, nameof(response), "'api/Wallet/spendable-transactions' API Response Was Null!");
+
+                return response;
+            }
+            catch(Exception ex)
+            {
+                Logger.Fatal($"An Error '{ex.Message}' Occured When Getting a List of Spendable TX's for Wallet '{walletName}'/'{account}'", ex);
+                throw;
+            }//end of try-catch
+        }//end of public async Task<List<GetSpendableTXResponse>> GetSpendableTransactions(string walletName, string account, int minConfirms = 50)
+
 
         /// <summary>
         /// Generates A New Mnemonic Foe Use In Creating A Wallet
@@ -76,6 +103,46 @@ namespace x42Client
                 throw;
             }//end of try-catch
         }//end of public async Task<string> CreateMnemonic(MnemomicLanguage language, MnemonicWordCount wordCount)
+
+
+        /// <summary>
+        /// Creates A Wallet
+        /// </summary>
+        /// <param name="mnemonic">Nemonic To Use</param>
+        /// <param name="password">Wallet Password</param>
+        /// <param name="passphrase">Wallet Passphrase</param>
+        /// <param name="name"></param>
+        /// <returns>MNemonic Used To Create The Wallet</returns>
+        public async Task<string> CreateWallet(string mnemonic, string password, string name, string passphrase = "")
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(passphrase)) { passphrase = password; }
+
+                Guard.Null(mnemonic, nameof(mnemonic), "mnemonic Cannot Be NULL/Empty!");
+                Guard.Null(password, nameof(password), "Wallet Password Cannot Be NULL/Empty!");
+                Guard.Null(name, nameof(name), "Wallet Name Cannot Be NULL/Empty!");
+
+                CreateWalletRequest request = new CreateWalletRequest
+                {
+                    name = name,
+                    passphrase = passphrase,
+                    password = password,
+                    mnemonic = mnemonic
+                };
+
+                string response = await base.SendPostJSON<string>("api/Wallet/create", request);
+
+                Guard.Null(response, nameof(response), "'api/Wallet/create' API Response Was Null!");
+
+                return response;
+            }
+            catch(Exception ex)
+            {
+                Logger.Fatal($"An Error '{ex.Message}' Occured When Creating Wallet '{name}'", ex);
+                throw;
+            }//end of try-catch
+        }//end of public async Task<string> CreateWallet(string mnemonic, string password, string passphrase, string name)
 
         /// <summary>
         /// Validates Whether The Supplied Address Is Correct
