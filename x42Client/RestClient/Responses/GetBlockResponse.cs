@@ -13,7 +13,7 @@
         public string merkleroot { get; set; }
         public string previousblockhash { get; set; }
         public int nonce { get; set; }
-        public int height { get; set; }
+        public ulong height { get; set; }
     }
 
     public class Transaction
