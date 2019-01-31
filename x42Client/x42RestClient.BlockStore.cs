@@ -57,5 +57,23 @@ namespace x42Client
                 throw;
             }//end of try-catch
         }//end of public async Task<GetBlockResponse> GetBlock(ulong blockHeight, bool showTX = true)
+
+
+        /// <summary>
+        /// Gets The Total Number of Blocks Downloaded
+        /// </summary>
+        /// <returns></returns>
+        public async Task<ulong> GetBlockCount()
+        {
+            try
+            {
+                return await base.SendGet<ulong>("api/BlockStore/getblockcount");
+
+            } catch (Exception ex)
+            {
+                Logger.Fatal($"An Error '{ex.Message}' Occured When Getting Block Height'!", ex);
+                throw;
+            }//end of try-catch
+        }//end of  public async Task<ulong> GetBlockCount()
     }//end of class
 }
