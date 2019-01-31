@@ -33,5 +33,54 @@ namespace x42Client
                 throw; //pass it back up the stack? .. this seems memory intensive to me
             }//end of try-catch
         }//end of  public async Task<GetPeerInfoResponse> GetPeerInfo()
+
+
+        /// <summary>
+        /// Get The Block Header
+        /// </summary>
+        /// <param name="blockHash">Block Hash</param>
+        public async Task<GetBlockHeaderResponse> GetBlockHeader(string blockHash)
+        {
+            try
+            {
+                Guard.Null(blockHash, nameof(blockHash), "Block Hash Cannot Be NULL/Empty!");
+
+                GetBlockHeaderResponse response = await base.SendGet<GetBlockHeaderResponse>($"api/Node/getblockheader?hash={blockHash}&isJsonFormat=true");
+                Guard.Null(response, nameof(response), "'api/Node/getblockheader' API Response Was Null!");
+
+                return response;
+            }
+            catch(Exception ex)
+            {
+                Logger.Fatal($"An Error '{ex.Message}' Occured When Getting Block Headers For Hash '{blockHash}'!", ex);
+
+                throw;
+            }//end of try-catch
+        }//end of public async Task<GetBlockHeaderResponse> GetBlockHeader(string blockHash)
+
+        /// <summary>
+        /// Get The Block Header
+        /// </summary>
+        /// <param name="height">Block Height</param>
+        public async Task<GetBlockHeaderResponse> GetBlockHeader(ulong height)
+        {
+            try
+            {
+                string blockHash = await this.GetBlockHash(height);
+
+                Guard.Null(blockHash, nameof(blockHash), "Block Hash Cannot Be NULL/Empty!");
+
+                GetBlockHeaderResponse response = await base.SendGet<GetBlockHeaderResponse>($"api/Node/getblockheader?hash={blockHash}&isJsonFormat=true");
+                Guard.Null(response, nameof(response), "'api/Node/getblockheader' API Response Was Null!");
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                Logger.Fatal($"An Error '{ex.Message}' Occured When Getting Block Headers For Height '{height}'!", ex);
+
+                throw;
+            }//end of try-catch
+        }//end of public async Task<GetBlockHeaderResponse> GetBlockHeader(string blockHash)
     }//end of class
 }
