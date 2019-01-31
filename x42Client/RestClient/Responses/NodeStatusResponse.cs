@@ -7,9 +7,9 @@
         public string network { get; set; }
         public string coinTicker { get; set; }
         public int processId { get; set; }
-        public int consensusHeight { get; set; }
-        public int blockStoreHeight { get; set; }
-        public object[] inboundPeers { get; set; }
+        public ulong consensusHeight { get; set; }
+        public ulong blockStoreHeight { get; set; }
+        public Outboundpeer[] inboundPeers { get; set; }
         public Outboundpeer[] outboundPeers { get; set; }
         public string[] enabledFeatures { get; set; }
         public string dataDirectoryPath { get; set; }
@@ -25,5 +25,5 @@ public class Outboundpeer
 {
     public string version { get; set; }
     public string remoteSocketEndpoint { get; set; }
-    public int tipHeight { get; set; }
+    public ulong tipHeight { get; set; }
 }
