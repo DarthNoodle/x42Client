@@ -70,27 +70,27 @@ namespace x42Client
 
 
         /// <summary>
-        /// Gets The Balence of The Wallet
+        /// Gets The Balance of The Wallet
         /// </summary>
         /// <param name="WalletName">Wallet Name</param>
         /// <param name="accountName">Account Name (Optional)</param>
         /// <returns>2 Balences, First Is Confirmed, Second Is Unconfirmed</returns>
-        public async Task<Tuple<decimal, decimal>> GetWalletBalence(string walletName, string accountName = null)
+        public async Task<Tuple<decimal, decimal>> GetWalletBalance(string walletName, string accountName = null)
         {
 
-            GetWalletBalenceResponse walletBalence = await _RestClient.GetWalletBalence(walletName, accountName);
-            Guard.Null(walletBalence, nameof(walletBalence), $"Node '{Name}' ({Address}:{Port}) An Error Occured When Trying To Get The Wallet Balence of Wallet '{walletName}' and Account '{accountName}'");
+            GetWalletBalenceResponse walletBalance = await _RestClient.GetWalletBalance(walletName, accountName);
+            Guard.Null(walletBalance, nameof(walletBalance), $"Node '{Name}' ({Address}:{Port}) An Error Occured When Trying To Get The Wallet Balence of Wallet '{walletName}' and Account '{accountName}'");
 
-            decimal confirmedBalence = 0;
-            decimal unConfirmedBalence = 0;
+            decimal confirmedBalance = 0;
+            decimal unConfirmedBalance = 0;
 
-            foreach (AccountBalance accountBalence in walletBalence.balances)
+            foreach (AccountBalance accountBalence in walletBalance.balances)
             {
-                confirmedBalence += accountBalence.amountConfirmed.ParseAPIAmount();
-                unConfirmedBalence += accountBalence.amountUnconfirmed.ParseAPIAmount();
+                confirmedBalance += accountBalence.amountConfirmed.ParseAPIAmount();
+                unConfirmedBalance += accountBalence.amountUnconfirmed.ParseAPIAmount();
             }//end of foreach (AccountBalance accountBalence in walletBalence.balances)
 
-            return new Tuple<decimal, decimal>(confirmedBalence, unConfirmedBalence);
+            return new Tuple<decimal, decimal>(confirmedBalance, unConfirmedBalance);
         }//end of public decimal GetWalletBalence(string WalletName, string accountName)
     }//end of x42Node.Transactions
 }

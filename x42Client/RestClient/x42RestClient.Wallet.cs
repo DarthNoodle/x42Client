@@ -360,12 +360,12 @@ namespace x42Client.RestClient
         }//end of public async Task<GetRecievedAddressInfoResponse> GetRecievedAddressBalence(string address)
 
         /// <summary>
-        /// Gets The Balence of The Wallet
+        /// Gets The Balance of The Wallet
         /// </summary>
         /// <param name="walletName">Name of Wallet</param>
         /// <param name="account">Name of Account (Leave Blank for All)</param>
         /// <returns></returns>
-        public async Task<GetWalletBalenceResponse> GetWalletBalence(string walletName, string account = null)
+        public async Task<GetWalletBalenceResponse> GetWalletBalance(string walletName, string account = null)
         {
             try
             {
@@ -442,7 +442,7 @@ namespace x42Client.RestClient
                 Guard.Null(password, nameof(password), "Unable To Build TX, Provided Password Is NULL/Empty!");
                 Guard.AssertTrue(await this.ValidateAddress(destinationAddress), $"Unable To Build TX, Destination Address '{destinationAddress.Trim()}' Is Not Valid!");
 
-                GetWalletBalenceResponse accountBalence = await this.GetWalletBalence(walletName, account);
+                GetWalletBalenceResponse accountBalence = await this.GetWalletBalance(walletName, account);
                 Guard.Null(accountBalence, nameof(accountBalence), $"Unable To Build TX, Account '{account}' Balence Request Was NULL/Empty!");
 
                 Guard.AssertTrue((accountBalence.balances[0].amountConfirmed > 0), $"Unable To Build TX, Insufficient Funds! Trying To Send '{amount}' When Account Only Has '{accountBalence.balances[0].amountConfirmed}'");
