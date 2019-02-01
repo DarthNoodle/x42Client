@@ -1,6 +1,6 @@
 ﻿namespace x42Client.Models
 {
-    public class Block
+    public class BlockHeader
     {
         public int Version { get; set; }
         public string MerkleRoot { get; set; }

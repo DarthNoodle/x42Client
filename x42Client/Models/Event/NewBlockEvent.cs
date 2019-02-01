@@ -2,10 +2,14 @@
 
 namespace x42Client.Models.Event
 {
-    public class NewBlockEvent: EventArgs
+    public class NewBlockEvent: BaseEvent
     {
-        public readonly Block Block;
+        public readonly BlockHeader Block;
 
-        public NewBlockEvent(Block block) => Block = block;
-    }
+        public NewBlockEvent(BlockHeader block)
+        {
+            Block = block;
+            Time = DateTime.Now;
+        }//end of public NewBlockEvent(BlockHeader block)
+    }//end of public class NewBlockEvent : BaseEvent
 }

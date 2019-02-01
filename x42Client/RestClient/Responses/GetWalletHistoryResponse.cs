@@ -20,7 +20,7 @@
         public string id { get; set; }
         public long amount { get; set; }
         public object[] payments { get; set; }
-        public int confirmedInBlock { get; set; }
+        public ulong confirmedInBlock { get; set; }
         public string timestamp { get; set; }
     }
 }

@@ -11,12 +11,12 @@ namespace x42Client.Utils.Extensions
         /// <summary>
         /// Converts the API Peer List Data Structure To A More Friendly One
         /// </summary>
-        public static Block ToBlock(this GetBlockResponse block)
+        public static BlockHeader ToBlockHeader(this GetBlockResponse block)
         {
             Guard.Null(block, nameof(block));
 
 
-            return new Block
+            return new BlockHeader
             {
                 Height = block.height,
                 Version = block.version,

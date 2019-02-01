@@ -83,6 +83,16 @@ namespace x42Client
         /// </summary>
         public string WalletPath { private set; get; } = string.Empty;
 
+        /// <summary>
+        /// List of Wallet Files Present on The Node
+        /// </summary>
         public List<string> WalletFiles { private set; get; } = new List<string>();
+
+        /// <summary>
+        /// List of Wallet Accounts (Key: Wallet Name, Value: List of Accounts)
+        /// </summary>
+        public Dictionary<string, List<string>> WalletAccounts { private set; get; } = new Dictionary<string, List<string>>();
+
+        public Dictionary<string, List<Transaction>> AccountTXs { private set; get; } = new Dictionary<string, List<Transaction>>();
     }//end of public partial class x42Node.Variables
 }

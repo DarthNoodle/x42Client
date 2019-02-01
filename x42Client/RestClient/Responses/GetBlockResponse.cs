@@ -2,7 +2,7 @@
 {
     public class GetBlockResponse
     {
-        public Transaction[] transactions { get; set; }
+        public BlockTransaction[] transactions { get; set; }
         public string[] tx { get; set; }
         public string hash { get; set; }
         public int size { get; set; }
@@ -16,7 +16,7 @@
         public ulong height { get; set; }
     }
 
-    public class Transaction
+    public class BlockTransaction
     {
         public string hex { get; set; }
         public string txid { get; set; }
