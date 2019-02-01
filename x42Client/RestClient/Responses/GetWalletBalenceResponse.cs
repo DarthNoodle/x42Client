@@ -11,7 +11,7 @@
         public string accountHdPath { get; set; }
         public int coinType { get; set; }
         public long amountConfirmed { get; set; }
-        public int amountUnconfirmed { get; set; }
+        public long amountUnconfirmed { get; set; }
     }
 }
 

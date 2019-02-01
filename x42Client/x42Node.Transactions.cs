@@ -1,9 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using x42Client.Enums;
 using x42Client.Models;
 using x42Client.RestClient.Responses;
 using x42Client.Utils.Extensions;
+using x42Client.Utils.Validation;
 
 namespace x42Client
 {
@@ -64,5 +67,30 @@ namespace x42Client
             }//end of if-else if (AccountTXs.ContainsKey(walletAccountKey))
 
         }//end of private void ProcessAccountTX(string wallet, string account)
+
+
+        /// <summary>
+        /// Gets The Balence of The Wallet
+        /// </summary>
+        /// <param name="WalletName">Wallet Name</param>
+        /// <param name="accountName">Account Name (Optional)</param>
+        /// <returns>2 Balences, First Is Confirmed, Second Is Unconfirmed</returns>
+        public async Task<Tuple<decimal, decimal>> GetWalletBalence(string walletName, string accountName = null)
+        {
+
+            GetWalletBalenceResponse walletBalence = await _RestClient.GetWalletBalence(walletName, accountName);
+            Guard.Null(walletBalence, nameof(walletBalence), $"Node '{Name}' ({Address}:{Port}) An Error Occured When Trying To Get The Wallet Balence of Wallet '{walletName}' and Account '{accountName}'");
+
+            decimal confirmedBalence = 0;
+            decimal unConfirmedBalence = 0;
+
+            foreach (AccountBalance accountBalence in walletBalence.balances)
+            {
+                confirmedBalence += accountBalence.amountConfirmed.ParseAPIAmount();
+                unConfirmedBalence += accountBalence.amountUnconfirmed.ParseAPIAmount();
+            }//end of foreach (AccountBalance accountBalence in walletBalence.balances)
+
+            return new Tuple<decimal, decimal>(confirmedBalence, unConfirmedBalence);
+        }//end of public decimal GetWalletBalence(string WalletName, string accountName)
     }//end of x42Node.Transactions
 }

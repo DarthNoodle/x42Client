@@ -44,6 +44,7 @@ namespace x42Client
             ProtocolVersion = $"{statusData.protocolVersion}";
             IsTestNet = statusData.testnet;
 
+            //############  TX History Processing #################
             //loop through all loaded wallets
             foreach(string wallet in WalletAccounts.Keys)
             {
@@ -60,9 +61,14 @@ namespace x42Client
                     else
                     {
                         Logger.Error($"An Error Occured Getting Account '{account}' TX History For Wallet '{wallet}', API Response Was NULL!");
-                    }
+                    }//end of if-else if(accountHistory != null)
                 }//end of foreach(string account in WalletAccounts[wallet])
             }//end of foreach(string wallet in WalletAccounts.Keys)
+
+
+
+
+
         }//end of private async void RefreshNodeData(object timerState)
 
 
