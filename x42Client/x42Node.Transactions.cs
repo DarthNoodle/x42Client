@@ -79,7 +79,7 @@ namespace x42Client
         {
 
             GetWalletBalenceResponse walletBalance = await _RestClient.GetWalletBalance(walletName, accountName);
-            Guard.Null(walletBalance, nameof(walletBalance), $"Node '{Name}' ({Address}:{Port}) An Error Occured When Trying To Get The Wallet Balence of Wallet '{walletName}' and Account '{accountName}'");
+            Guard.Null(walletBalance, nameof(walletBalance), $"Node '{Name}' ({Address}:{Port}) An Error Occured When Trying To Get The Wallet Balance of Wallet '{walletName}' and Account '{accountName}'");
 
             decimal confirmedBalance = 0;
             decimal unConfirmedBalance = 0;

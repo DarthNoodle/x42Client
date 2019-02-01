@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using x42Client.Models;
@@ -11,6 +12,13 @@ namespace x42Client
 
         private x42RestClient _RestClient;
         private Timer _RefreshTimer;
+
+
+        /// <summary>
+        /// Was There An Error Getting The FS Information
+        /// </summary>
+        private bool _Error_FS_Info = false;
+
 
         /// <summary>
         /// Current Block Height of The Node
@@ -96,5 +104,25 @@ namespace x42Client
         /// List of All Accounts & Their Transactions on The Remote Node
         /// </summary>
         public Dictionary<string, List<Transaction>> AccountTXs { private set; get; } = new Dictionary<string, List<Transaction>>();
+
+        /// <summary>
+        /// Is The Node Staking
+        /// </summary>
+        public bool IsStaking { private set; get; } = false;
+
+        /// <summary>
+        /// Staking Weight Of The Network
+        /// </summary>
+        public ulong NetworkStakingWeight { private set; get; } = 0;
+
+        /// <summary>
+        /// Node Staking Weight
+        /// </summary>
+        public ulong NodeStakingWeight { private set; get; } = 0;
+
+        /// <summary>
+        /// Expected Time To Stake Reward
+        /// </summary>
+        public DateTime ExpectedStakingTime { private set; get; } = DateTime.Now;
     }//end of public partial class x42Node.Variables
 }

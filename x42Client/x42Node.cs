@@ -26,48 +26,63 @@ namespace x42Client
         private async void RefreshNodeData(object timerState)
         {
             NodeStatusResponse statusData = await _RestClient.GetNodeStatus();
-            Guard.Null(statusData, $"Node '{Name}' ({Address}:{Port}) Status Is Null!");
+            if(statusData == null) { Logger.Error($"Node '{Name}' ({Address}:{Port}) An Error Occured Getting Node Status!"); }
+            else
+            {
+                //update a list of peers
+                Peers = statusData.outboundPeers.ToPeersList();
+                Peers.AddRange(statusData.inboundPeers.ToPeersList());
 
-            //update a list of peers
-            Peers = statusData.outboundPeers.ToPeersList();
-            Peers.AddRange(statusData.inboundPeers.ToPeersList());
+                //we have a new block, so fire off an event
+                if (statusData.consensusHeight > BlockTIP) { OnNewBlock(statusData.consensusHeight); }
 
-            //we have a new block, so fire off an event
-            if(statusData.consensusHeight > BlockTIP) { OnNewBlock(statusData.consensusHeight); }
+                //update current height (use consensus because they have been fully validated)
+                BlockTIP = statusData.consensusHeight;
 
-            //update current height (use consensus because they have been fully validated)
-            BlockTIP = statusData.consensusHeight;
+                DataDirectory = statusData.dataDirectoryPath;
 
-            DataDirectory = statusData.dataDirectoryPath;
+                NodeVersion = statusData.version;
+                ProtocolVersion = $"{statusData.protocolVersion}";
+                IsTestNet = statusData.testnet;
+            }//end of if(statusData == null)
 
-            NodeVersion = statusData.version;
-            ProtocolVersion = $"{statusData.protocolVersion}";
-            IsTestNet = statusData.testnet;
 
             //############  TX History Processing #################
-            //loop through all loaded wallets
-            foreach(string wallet in WalletAccounts.Keys)
+            //this is called by a different method, if it errored then all the code below would mess up.
+            if (!_Error_FS_Info)
             {
-                //Loop through all Wallet Accounts
-                foreach(string account in WalletAccounts[wallet])
+                
+                //loop through all loaded wallets
+                foreach (string wallet in WalletAccounts.Keys)
                 {
-                    //Get Account history
-                    GetWalletHistoryResponse accountHistory = await _RestClient.GetWalletHistory(wallet, account);
-                    if(accountHistory != null)
+                    //Loop through all Wallet Accounts
+                    foreach (string account in WalletAccounts[wallet])
                     {
-                        //there is only one entry for "history"
-                        ProcessAccountTXs(wallet, account, accountHistory.history[0].transactionsHistory);
-                    }
-                    else
-                    {
-                        Logger.Error($"An Error Occured Getting Account '{account}' TX History For Wallet '{wallet}', API Response Was NULL!");
-                    }//end of if-else if(accountHistory != null)
-                }//end of foreach(string account in WalletAccounts[wallet])
-            }//end of foreach(string wallet in WalletAccounts.Keys)
+                        //Get Account history
+                        GetWalletHistoryResponse accountHistory = await _RestClient.GetWalletHistory(wallet, account);
+                        if (accountHistory != null)
+                        {
+                            //there is only one entry for "history"
+                            ProcessAccountTXs(wallet, account, accountHistory.history[0].transactionsHistory);
+                        }
+                        else
+                        {
+                            Logger.Error($"An Error Occured Getting Account '{account}' TX History For Wallet '{wallet}', API Response Was NULL!");
+                        }//end of if-else if(accountHistory != null)
+                    }//end of foreach(string account in WalletAccounts[wallet])
+                }//end of foreach(string wallet in WalletAccounts.Keys)
+            }//end of if (!_Error_FS_Info)
 
 
 
 
+            //############  Staking Info #################
+            GetStakingInfoResponse stakingInfo = await _RestClient.GetStakingInfo();
+            if (stakingInfo == null) { Logger.Error($"Node '{Name}' ({Address}:{Port}), An Error Occured When Getting Staking Information!"); }
+            else
+            {
+
+            }//end of if (stakingInfo == null)
 
         }//end of private async void RefreshNodeData(object timerState)
 
@@ -76,28 +91,33 @@ namespace x42Client
         private async void GetStaticData()
         {
             GetWalletFilesResponse filesData = await _RestClient.GetWalletFiles();
-            Guard.Null(filesData, nameof(filesData), $"Node '{Name}' ({Address}:{Port}) File Data Is Null!");
-
-            WalletPath = filesData.walletsPath;
-            WalletFiles = new List<string>(filesData.walletsFiles);
-
-            foreach(string wallet in WalletFiles)
+            if(filesData == null) {
+                _Error_FS_Info = true; //an error occured, this data is relied upon in the "RefreshNodeData" Method
+                Logger.Error($"Node '{Name}' ({Address}:{Port}), An Error Occured When Getting Node File Information!");
+            }
+            else
             {
-                //parse MyWallet.wallet.json  to "MyWallet"
-                string walletName = wallet.Substring(0, wallet.IndexOf("."));
+                WalletPath = filesData.walletsPath;
+                WalletFiles = new List<string>(filesData.walletsFiles);
 
-                //Get a list of accounts
-                List<string> walletAccounts = await _RestClient.GetWalletAccounts(walletName);
-
-                if (walletAccounts == null) { Logger.Warn($"An Error Occured When Trying To Get Wallet Accounts For Wallet '{walletName}'"); }
-                if(walletAccounts.Count > 0)
+                foreach (string wallet in WalletFiles)
                 {
-                    //Are there already present wallets? if so overwrite the data, if not then lets add a new record
-                    if (WalletAccounts.ContainsKey(walletName)) { WalletAccounts[walletName] = walletAccounts; }
-                    else { WalletAccounts.Add(walletName, walletAccounts); }
-                }//end of if(walletAccounts.Count > 0)
+                    //parse MyWallet.wallet.json  to "MyWallet"
+                    string walletName = wallet.Substring(0, wallet.IndexOf("."));
 
-            }//end of foreach
+                    //Get a list of accounts
+                    List<string> walletAccounts = await _RestClient.GetWalletAccounts(walletName);
+
+                    if (walletAccounts == null) { Logger.Warn($"An Error Occured When Trying To Get Wallet Accounts For Wallet '{walletName}'"); }
+                    if (walletAccounts.Count > 0)
+                    {
+                        //Are there already present wallets? if so overwrite the data, if not then lets add a new record
+                        if (WalletAccounts.ContainsKey(walletName)) { WalletAccounts[walletName] = walletAccounts; }
+                        else { WalletAccounts.Add(walletName, walletAccounts); }
+                    }//end of if(walletAccounts.Count > 0)
+
+                }//end of foreach
+            }//end of if-else if (filesData == null)
 
         }//end of private async void GetStaticData()
 
