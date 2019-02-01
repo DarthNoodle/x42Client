@@ -3,6 +3,7 @@ using System.Linq;
 using x42Client.Enums;
 using x42Client.Models;
 using x42Client.RestClient.Responses;
+using x42Client.Utils.Extensions;
 
 namespace x42Client
 {
@@ -34,7 +35,7 @@ namespace x42Client
                 //add the TX
                 accountTXs.Add(new Transaction {
                      Address = tx.toAddress,
-                     Amount = tx.amount,
+                     Amount = tx.amount.ParseAPIAmount(),
                      BlockID = tx.confirmedInBlock,
                      TXID = tx.id,
                      Timestamp = tx.timestamp,

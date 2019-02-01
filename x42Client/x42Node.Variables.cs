@@ -17,7 +17,6 @@ namespace x42Client
         /// </summary>
         public ulong BlockTIP { private set; get; } = 0;
 
-
         /// <summary>
         /// Refresh Information Every X Seconds
         /// </summary>
@@ -93,6 +92,9 @@ namespace x42Client
         /// </summary>
         public Dictionary<string, List<string>> WalletAccounts { private set; get; } = new Dictionary<string, List<string>>();
 
+        /// <summary>
+        /// List of All Accounts & Their Transactions on The Remote Node
+        /// </summary>
         public Dictionary<string, List<Transaction>> AccountTXs { private set; get; } = new Dictionary<string, List<Transaction>>();
     }//end of public partial class x42Node.Variables
 }
