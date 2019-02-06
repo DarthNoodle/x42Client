@@ -17,7 +17,7 @@
         public float difficulty { get; set; }
         public int protocolVersion { get; set; }
         public bool testnet { get; set; }
-        public int relayFee { get; set; }
+        public decimal relayFee { get; set; }
     }
 }
 

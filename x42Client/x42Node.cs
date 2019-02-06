@@ -25,7 +25,7 @@ namespace x42Client
         private void SetupNodeConnection(string name, IPAddress address, ushort port)
         {
             _RestClient = new x42RestClient($"http://{address}:{port}/");
-            _RefreshTimer = new Timer(UpdateNodeData, null, 0, _RefreshTime);
+           // _RefreshTimer = new Timer(UpdateNodeData, null, 0, _RefreshTime);
 
             Name = name;
 

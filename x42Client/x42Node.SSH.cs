@@ -50,7 +50,7 @@ namespace x42Client
 
                 if (!_SSHClient.IsConnected) { throw new Exception($"An Error Occured When Connecting To SSH Server '{username}'@'{sshServerAddress}':'{sshPort}'"); }
 
-                _SSHForwardPort = new ForwardedPortLocal(nodeIPAddress, nodePort, localBoundAddress, localBoundPort);
+                _SSHForwardPort = new ForwardedPortLocal(localBoundPort, nodeIPAddress, nodePort);
                 _SSHClient.AddForwardedPort(_SSHForwardPort);
 
                 _SSHForwardPort.Start();

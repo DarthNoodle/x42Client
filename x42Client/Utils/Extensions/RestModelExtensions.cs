@@ -21,7 +21,7 @@ namespace x42Client.Utils.Extensions
             //are we dealing with non-whole numbers (e.g 0.10000000)
             if ($"{amount}".Length == 8)
             {
-                if(decimal.TryParse($"0.{amount}", out returnValue))
+                if(!decimal.TryParse($"0.{amount}", out returnValue))
                 {
                     Logger.Error($"An Error Occured When Trying To Convert '{amount}' To the Proper Decimal Notation");
                     return -1;
@@ -37,7 +37,7 @@ namespace x42Client.Utils.Extensions
             string newAmountWhole = amountStr.Substring(0, amountStr.Length - 8);
             string newAmountRemainder = amountStr.Substring(amountStr.Length - 8);
 
-            if (decimal.TryParse($"{newAmountWhole}.{newAmountRemainder}", out returnValue))
+            if (!decimal.TryParse($"{newAmountWhole}.{newAmountRemainder}", out returnValue))
             {
                 Logger.Error($"An Error Occured When Trying To Convert '{amount}' To the Proper Decimal Notation");
                 return -1;
