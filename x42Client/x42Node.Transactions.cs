@@ -6,12 +6,44 @@ using x42Client.Enums;
 using x42Client.Models;
 using x42Client.RestClient.Responses;
 using x42Client.Utils.Extensions;
+using x42Client.Utils.Logging;
 using x42Client.Utils.Validation;
 
 namespace x42Client
 {
     public partial class x42Node
     {
+        /// <summary>
+        /// Update Wallet TX Data
+        /// </summary>
+        public async void UpdateWalletTXs()
+        {
+            //this is called by a different method, if it errored then all the code below would mess up.
+            if (!_Error_FS_Info)
+            {
+
+                //loop through all loaded wallets
+                foreach (string wallet in WalletAccounts.Keys)
+                {
+                    //Loop through all Wallet Accounts
+                    foreach (string account in WalletAccounts[wallet])
+                    {
+                        //Get Account history
+                        GetWalletHistoryResponse accountHistory = await _RestClient.GetWalletHistory(wallet, account);
+                        if (accountHistory != null)
+                        {
+                            //there is only one entry for "history"
+                            ProcessAccountTXs(wallet, account, accountHistory.history[0].transactionsHistory);
+                        }
+                        else
+                        {
+                            Logger.Error($"An Error Occured Getting Account '{account}' TX History For Wallet '{wallet}', API Response Was NULL!");
+                        }//end of if-else if(accountHistory != null)
+                    }//end of foreach(string account in WalletAccounts[wallet])
+                }//end of foreach(string wallet in WalletAccounts.Keys)
+            }//end of if (!_Error_FS_Info)
+        }//end of private async void UpdateWalletTXs()
+
         /// <summary>
         /// Processes the TX History For a Given Account
         /// </summary>

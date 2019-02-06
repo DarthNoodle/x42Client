@@ -8,7 +8,7 @@
         public int currentBlockSize { get; set; }
         public int currentBlockTx { get; set; }
         public int pooledTx { get; set; }
-        public float difficulty { get; set; }
+        public decimal difficulty { get; set; }
         public int searchInterval { get; set; }
         public long weight { get; set; }
         public long netStakeWeight { get; set; }

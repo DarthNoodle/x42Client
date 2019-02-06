@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Renci.SshNet;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading;
@@ -15,16 +16,26 @@ namespace x42Client
     {
         public x42Node(string name, IPAddress address, ushort port)
         {
-            _RestClient = new x42RestClient($"http://{address}:{port}/");
-            _RefreshTimer = new Timer(RefreshNodeData, null, 0, _RefreshTime);
-
-            GetStaticData();
+            SetupNodeConnection(name, address, port);
         }
 
+        /// <summary>
+        /// Sets Up The API Connection To The x42 Node
+        /// </summary>
+        private void SetupNodeConnection(string name, IPAddress address, ushort port)
+        {
+            _RestClient = new x42RestClient($"http://{address}:{port}/");
+            _RefreshTimer = new Timer(UpdateNodeData, null, 0, _RefreshTime);
+
+            Name = name;
+
+            UpdateStaticData();
+        }
 
         //The Workhorse which refreshes all Node Data
-        private async void RefreshNodeData(object timerState)
+        public async void UpdateNodeData(object timerState = null)
         {
+            //############  Status Data #################
             NodeStatusResponse statusData = await _RestClient.GetNodeStatus();
             if(statusData == null) { Logger.Error($"Node '{Name}' ({Address}:{Port}) An Error Occured Getting Node Status!"); }
             else
@@ -48,47 +59,16 @@ namespace x42Client
 
 
             //############  TX History Processing #################
-            //this is called by a different method, if it errored then all the code below would mess up.
-            if (!_Error_FS_Info)
-            {
-                
-                //loop through all loaded wallets
-                foreach (string wallet in WalletAccounts.Keys)
-                {
-                    //Loop through all Wallet Accounts
-                    foreach (string account in WalletAccounts[wallet])
-                    {
-                        //Get Account history
-                        GetWalletHistoryResponse accountHistory = await _RestClient.GetWalletHistory(wallet, account);
-                        if (accountHistory != null)
-                        {
-                            //there is only one entry for "history"
-                            ProcessAccountTXs(wallet, account, accountHistory.history[0].transactionsHistory);
-                        }
-                        else
-                        {
-                            Logger.Error($"An Error Occured Getting Account '{account}' TX History For Wallet '{wallet}', API Response Was NULL!");
-                        }//end of if-else if(accountHistory != null)
-                    }//end of foreach(string account in WalletAccounts[wallet])
-                }//end of foreach(string wallet in WalletAccounts.Keys)
-            }//end of if (!_Error_FS_Info)
-
-
-
+            UpdateWalletTXs();
 
             //############  Staking Info #################
-            GetStakingInfoResponse stakingInfo = await _RestClient.GetStakingInfo();
-            if (stakingInfo == null) { Logger.Error($"Node '{Name}' ({Address}:{Port}), An Error Occured When Getting Staking Information!"); }
-            else
-            {
-
-            }//end of if (stakingInfo == null)
+            UpdateStakingInformation();
 
         }//end of private async void RefreshNodeData(object timerState)
 
 
         //Obtains Data that is NOT likely to change!
-        private async void GetStaticData()
+        public async void UpdateStaticData()
         {
             GetWalletFilesResponse filesData = await _RestClient.GetWalletFiles();
             if(filesData == null) {
@@ -117,6 +97,8 @@ namespace x42Client
                     }//end of if(walletAccounts.Count > 0)
 
                 }//end of foreach
+
+                _Error_FS_Info = false;
             }//end of if-else if (filesData == null)
 
         }//end of private async void GetStaticData()
@@ -140,7 +122,26 @@ namespace x42Client
                     x42RestClient rc = _RestClient;
                     rc = null;
                     rc.Dispose();
-                }
+                }//end of if (_RestClient != null)
+
+                if(_SSHForwardPort != null)
+                {
+                    _SSHForwardPort.Stop();
+
+                    ForwardedPortLocal fp = _SSHForwardPort;
+                    fp = null;
+                    fp.Dispose();
+                }//end of if(_SSHForwardPort != null)
+
+                if (_SSHClient != null)
+                {
+                    _SSHClient.Disconnect();
+
+                    SshClient sc = _SSHClient;
+                    sc = null;
+                    sc.Dispose();
+                }//end of if(_SSHForwardPort != null)
+
                 _Disposed = true;
             } //end of private void Dispose(bool disposing)
         #endregion

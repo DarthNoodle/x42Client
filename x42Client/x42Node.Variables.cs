@@ -35,7 +35,7 @@ namespace x42Client
             {
                 _RefreshTime = value;
                 _RefreshTimer.Dispose();
-                _RefreshTimer = new Timer(RefreshNodeData, null, 0, _RefreshTime);
+                _RefreshTimer = new Timer(UpdateNodeData, null, 0, _RefreshTime);
             }
         }//end of public int RefreshTime {
         private int _RefreshTime { get; set; } = 30;
@@ -113,16 +113,21 @@ namespace x42Client
         /// <summary>
         /// Staking Weight Of The Network
         /// </summary>
-        public ulong NetworkStakingWeight { private set; get; } = 0;
+        public long NetworkStakingWeight { private set; get; } = 0;
 
         /// <summary>
         /// Node Staking Weight
         /// </summary>
-        public ulong NodeStakingWeight { private set; get; } = 0;
+        public decimal NodeStakingWeight { private set; get; } = 0;
 
         /// <summary>
         /// Expected Time To Stake Reward
         /// </summary>
-        public DateTime ExpectedStakingTime { private set; get; } = DateTime.Now;
+        public long ExpectedStakingTimeMins { private set; get; } = -1;
+
+        /// <summary>
+        /// The Current NetworkDifficulty
+        /// </summary>
+        public decimal NetworkDifficulty { private set; get; } = 0;
     }//end of public partial class x42Node.Variables
 }
