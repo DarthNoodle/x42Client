@@ -24,10 +24,10 @@ namespace x42Client
         /// <param name="sshServerAddress">IP Address of SSH Server</param>
         /// <param name="sshPort">SSH Server Port (Default: 22)</param>
         /// <param name="nodeIPAddress">IP Address x42 Node Is Bound To (Default: 127.0.0.1)</param>
-        /// <param name="nodePort">Port x42 Node Is Bound To (Default: 422220 - MainNet)</param>
+        /// <param name="nodePort">Port x42 Node Is Bound To (Default: 42220 - MainNet)</param>
         /// <param name="localBoundAddress">IP Address To Bind Locally (Default: 127.0.0.1)</param>
-        /// <param name="localBoundPort">Local Port To Bind To (Default: 422220 - MainNet)</param>
-        public x42Node(string name, string username, string password, string sshServerAddress, uint sshPort = 22, string nodeIPAddress = "127.0.0.1", uint nodePort = 422220, string localBoundAddress = "127.0.0.1", uint localBoundPort = 422220)
+        /// <param name="localBoundPort">Local Port To Bind To (Default: 42220 - MainNet)</param>
+        public x42Node(string name, string username, string password, string sshServerAddress, uint sshPort = 22, string nodeIPAddress = "127.0.0.1", uint nodePort = 42220, string localBoundAddress = "127.0.0.1", uint localBoundPort = 42220)
         {
             try
             {
