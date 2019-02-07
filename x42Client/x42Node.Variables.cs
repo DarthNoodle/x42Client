@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading;
+using x42Client.Enums;
 using x42Client.Models;
 using x42Client.RestClient;
 
@@ -129,5 +130,11 @@ namespace x42Client
         /// The Current NetworkDifficulty
         /// </summary>
         public decimal NetworkDifficulty { private set; get; } = 0;
+
+        /// <summary>
+        /// How Is The SDK Connected To The x42 Node
+        /// </summary>
+        public ConnectionType ConnectionMethod { private set; get; } = ConnectionType.Disconnected;
+
     }//end of public partial class x42Node.Variables
 }

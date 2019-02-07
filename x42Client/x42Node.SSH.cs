@@ -1,6 +1,7 @@
 ﻿using Renci.SshNet;
 using System;
 using System.Net;
+using x42Client.Enums;
 using x42Client.Utils.Extensions;
 using x42Client.Utils.Logging;
 using x42Client.Utils.Validation;
@@ -56,6 +57,8 @@ namespace x42Client
                 _SSHForwardPort.Start();
 
                 SetupNodeConnection(name, localBoundIP, (ushort)localBoundPort);
+
+                ConnectionMethod = ConnectionType.SSH;
             }
             catch(Exception ex)
             {

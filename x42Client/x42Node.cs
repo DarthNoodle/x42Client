@@ -1,9 +1,7 @@
-﻿using Renci.SshNet;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net;
-using System.Threading;
-using x42Client.Models;
+using x42Client.Enums;
 using x42Client.RestClient;
 using x42Client.RestClient.Responses;
 using x42Client.Utils.Extensions;
@@ -17,6 +15,8 @@ namespace x42Client
         public x42Node(string name, IPAddress address, ushort port)
         {
             SetupNodeConnection(name, address, port);
+
+            ConnectionMethod = ConnectionType.DirectAPI;
         }
 
         /// <summary>
@@ -28,6 +28,8 @@ namespace x42Client
            // _RefreshTimer = new Timer(UpdateNodeData, null, 0, _RefreshTime);
 
             Name = name;
+            Address = address;
+            Port = port;
 
             UpdateStaticData();
         }
@@ -55,7 +57,8 @@ namespace x42Client
             }//end of if(statusData == null)
 
 
-            //update a list of peers
+
+            //############  Update Peers #################
             List<GetPeerInfoResponse> peersResponse = await _RestClient.GetPeerInfo();
             if(peersResponse == null) { Logger.Error($"Node '{Name}' ({Address}:{Port}) An Error Occured Getting The Node Peer List!"); }
             else
