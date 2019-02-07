@@ -114,37 +114,39 @@ namespace x42Client
 
             private void Dispose(bool disposing)
             {
+        
                 if (_Disposed || !disposing) return;
 
 
-                if (_RestClient != null)
+                try
                 {
-                    x42RestClient rc = _RestClient;
-                    rc = null;
-                    rc.Dispose();
-                }//end of if (_RestClient != null)
+                       if(_RestClient != null) { _RestClient.Dispose(); }
+                       if(_SSHForwardPort != null)
+                        {
+                            _SSHForwardPort.Stop();
+                            _SSHForwardPort.Dispose();
+                        }//end of if(_SSHForwardPort != null)
 
-                if(_SSHForwardPort != null)
+                        if(_SSHClient != null)
+                        {
+                            _SSHClient.Disconnect();
+                            _SSHClient.Dispose();
+                        }//end of if (_SSHClient != null)
+                }
+                finally
                 {
-                    _SSHForwardPort.Stop();
-
-                    ForwardedPortLocal fp = _SSHForwardPort;
-                    fp = null;
-                    fp.Dispose();
-                }//end of if(_SSHForwardPort != null)
-
-                if (_SSHClient != null)
-                {
-                    _SSHClient.Disconnect();
-
-                    SshClient sc = _SSHClient;
-                    sc = null;
-                    sc.Dispose();
-                }//end of if(_SSHForwardPort != null)
-
-                _Disposed = true;
+                    _Disposed = true;
+                }//end of try-finally               
+               
             } //end of private void Dispose(bool disposing)
+
+            // no unmanaged code present
+            //~x42Node()
+            //{
+            //    Dispose(true);
+            //}
         #endregion
+
 
     }//end of public class x42Node
 }
