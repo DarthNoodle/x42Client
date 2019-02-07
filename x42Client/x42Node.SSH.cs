@@ -28,7 +28,7 @@ namespace x42Client
         /// <param name="nodePort">Port x42 Node Is Bound To (Default: 42220 - MainNet)</param>
         /// <param name="localBoundAddress">IP Address To Bind Locally (Default: 127.0.0.1)</param>
         /// <param name="localBoundPort">Local Port To Bind To (Default: 42220 - MainNet)</param>
-        public x42Node(string name, string username, string password, string sshServerAddress, uint sshPort = 22, string nodeIPAddress = "127.0.0.1", uint nodePort = 42220, string localBoundAddress = "127.0.0.1", uint localBoundPort = 42220)
+        public x42Node(string name, string username, string password, string sshServerAddress, ushort sshPort = 22, string nodeIPAddress = "127.0.0.1", uint nodePort = 42220, string localBoundAddress = "127.0.0.1", uint localBoundPort = 42220)
         {
             try
             {
@@ -48,6 +48,7 @@ namespace x42Client
                 _SSHClient.KeepAliveInterval = new TimeSpan(0, 0, 5);
                 _SSHClient.ConnectionInfo.Timeout = new TimeSpan(0, 0, 20);
                 _SSHClient.Connect();
+                
 
                 if (!_SSHClient.IsConnected) { throw new Exception($"An Error Occured When Connecting To SSH Server '{username}'@'{sshServerAddress}':'{sshPort}'"); }
 
@@ -58,7 +59,7 @@ namespace x42Client
 
                 SetupNodeConnection(name, localBoundIP, (ushort)localBoundPort);
 
-                ConnectionMethod = ConnectionType.SSH;
+                OnConnected(sshAddress, sshPort, ConnectionType.SSH);
             }
             catch(Exception ex)
             {

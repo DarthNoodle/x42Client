@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Net;
+using x42Client.Enums;
 using x42Client.Models;
 using x42Client.Models.Event;
 using x42Client.RestClient.Responses;
@@ -12,6 +14,10 @@ namespace x42Client
 
     public delegate void NewTXEventHandler(object sender, NewTXEvent e);
 
+    public delegate void OnConnected(object sender, ConnectDisconnectEvent e);
+
+    public delegate void OnDisConnected(object sender, ConnectDisconnectEvent e);
+
     public partial class x42Node
     {
         /// <summary>
@@ -24,6 +30,48 @@ namespace x42Client
         /// </summary>
         public NewTXEventHandler NewTransactionEvent;
 
+        /// <summary>
+        /// Triggers When The Node Connects
+        /// </summary>
+        public OnConnected OnConnectedEvent;
+
+
+        /// <summary>
+        /// Triggers When The Node Connection Is Offline
+        /// </summary>
+        public OnDisConnected OnDisconnectedEvent;
+
+        /// <summary>
+        /// Used To Signal When A Connection To A Remote Node Is Sucessful
+        /// </summary>
+        /// <param name="address"></param>
+        /// <param name="port"></param>
+        public virtual void OnConnected(IPAddress address, ushort port, ConnectionType method)
+        {
+            Guard.Null(address, nameof(address), $"Cannot Fire 'OnConnected' Event, Supplied IP Address Is NULL!");
+            Guard.AssertTrue(port.IsValidPortRange(), $"Cannot Fire 'OnConnected' Event, Supplied Port '{port}' Is Not Valid!");
+
+            ConnectionMethod = method;
+            Address = address;
+            Port = port;
+
+            OnConnectedEvent?.Invoke(this, new ConnectDisconnectEvent(true, address, port));
+        }//end of public virtual void OnConnected(IPAddress address, ushort port)
+
+        /// <summary>
+        /// Used To When An Existing Connection Is Offline
+        /// </summary>
+        /// <param name="address"></param>
+        /// <param name="port"></param>
+        public virtual void OnDisconnected(IPAddress address, ushort port)
+        {
+            Guard.Null(address, nameof(address), $"Cannot Fire 'OnConnected' Event, Supplied IP Address Is NULL!");
+            Guard.AssertTrue(port.IsValidPortRange(), $"Cannot Fire 'OnConnected' Event, Supplied Port '{port}' Is Not Valid!");
+
+            ConnectionMethod = ConnectionType.Disconnected;
+
+            OnDisconnectedEvent?.Invoke(this, new ConnectDisconnectEvent(false, address, port));
+        }//end of public virtual void OnDisconnected(IPAddress address, ushort port)
 
 
         /// <summary>

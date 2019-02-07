@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Http;
 using x42Client.Enums;
 using x42Client.RestClient;
 using x42Client.RestClient.Responses;
@@ -16,7 +17,7 @@ namespace x42Client
         {
             SetupNodeConnection(name, address, port);
 
-            ConnectionMethod = ConnectionType.DirectAPI;
+            OnConnected(address, port, ConnectionType.DirectAPI);
         }
 
         /// <summary>
@@ -28,8 +29,6 @@ namespace x42Client
            // _RefreshTimer = new Timer(UpdateNodeData, null, 0, _RefreshTime);
 
             Name = name;
-            Address = address;
-            Port = port;
 
             UpdateStaticData();
         }
@@ -37,78 +36,115 @@ namespace x42Client
         //The Workhorse which refreshes all Node Data
         public async void UpdateNodeData(object timerState = null)
         {
-            //############  Status Data #################
-            NodeStatusResponse statusData = await _RestClient.GetNodeStatus();
-            if(statusData == null) { Logger.Error($"Node '{Name}' ({Address}:{Port}) An Error Occured Getting Node Status!"); }
-            else
+            try
             {
+                //are we connected??
+                if(ConnectionMethod == ConnectionType.Disconnected)
+                {
+                    Logger.Warn($"Node '{Name}' ({Address}:{Port}), Aborting 'Status' Update.  Internal State Is Disconnected!");
+                    return;
+                }//end of if(ConnectionMethod == ConnectionType.Disconnected)
 
-                //we have a new block, so fire off an event
-                if (statusData.consensusHeight > BlockTIP) { OnNewBlock(statusData.consensusHeight); }
+                //############  Status Data #################
+                NodeStatusResponse statusData = await _RestClient.GetNodeStatus();
+                if (statusData == null) { Logger.Error($"Node '{Name}' ({Address}:{Port}) An Error Occured Getting Node Status!"); }
+                else
+                {
 
-                //update current height (use consensus because they have been fully validated)
-                BlockTIP = statusData.consensusHeight;
+                    //we have a new block, so fire off an event
+                    if (statusData.consensusHeight > BlockTIP) { OnNewBlock(statusData.consensusHeight); }
 
-                DataDirectory = statusData.dataDirectoryPath;
+                    //update current height (use consensus because they have been fully validated)
+                    BlockTIP = statusData.consensusHeight;
 
-                NodeVersion = statusData.version;
-                ProtocolVersion = $"{statusData.protocolVersion}";
-                IsTestNet = statusData.testnet;
-            }//end of if(statusData == null)
+                    DataDirectory = statusData.dataDirectoryPath;
+
+                    NodeVersion = statusData.version;
+                    ProtocolVersion = $"{statusData.protocolVersion}";
+                    IsTestNet = statusData.testnet;
+                }//end of if(statusData == null)
 
 
 
-            //############  Update Peers #################
-            List<GetPeerInfoResponse> peersResponse = await _RestClient.GetPeerInfo();
-            if(peersResponse == null) { Logger.Error($"Node '{Name}' ({Address}:{Port}) An Error Occured Getting The Node Peer List!"); }
-            else
+                //############  Update Peers #################
+                List<GetPeerInfoResponse> peersResponse = await _RestClient.GetPeerInfo();
+                if (peersResponse == null) { Logger.Error($"Node '{Name}' ({Address}:{Port}) An Error Occured Getting The Node Peer List!"); }
+                else
+                {
+                    Peers = peersResponse.ToPeersList();
+                }//end of if-else (_Peers == null)
+
+
+                //############  TX History Processing #################
+                UpdateWalletTXs();
+
+                //############  Staking Info #################
+                UpdateStakingInformation();
+            }
+            catch(HttpRequestException ex) //API is not accessible or responding
             {
-                Peers = peersResponse.ToPeersList();
-            }//end of if-else (_Peers == null)
-
-
-            //############  TX History Processing #################
-            UpdateWalletTXs();
-
-            //############  Staking Info #################
-            UpdateStakingInformation();
-
+                OnDisconnected(Address, Port);
+                Logger.Fatal($"Node '{Name}' ({Address}:{Port}) Something Happened & The Node API Is Not Accessible", ex);
+            }catch(Exception ex)
+            {
+                Logger.Fatal($"Node '{Name}' ({Address}:{Port}) An Error Occured When Polling For Data!", ex);
+            }
         }//end of private async void RefreshNodeData(object timerState)
 
 
         //Obtains Data that is NOT likely to change!
         public async void UpdateStaticData()
         {
-            GetWalletFilesResponse filesData = await _RestClient.GetWalletFiles();
-            if(filesData == null) {
-                _Error_FS_Info = true; //an error occured, this data is relied upon in the "RefreshNodeData" Method
-                Logger.Error($"Node '{Name}' ({Address}:{Port}), An Error Occured When Getting Node File Information!");
-            }
-            else
+            //are we connected??
+            if (ConnectionMethod == ConnectionType.Disconnected)
             {
-                WalletPath = filesData.walletsPath;
-                WalletFiles = new List<string>(filesData.walletsFiles);
+                Logger.Warn($"Node '{Name}' ({Address}:{Port}), Aborting 'Static Data' Update.  Internal State Is Disconnected!");
+                return;
+            }//end of if(ConnectionMethod == ConnectionType.Disconnected)
 
-                foreach (string wallet in WalletFiles)
+            try
+            {
+                GetWalletFilesResponse filesData = await _RestClient.GetWalletFiles();
+                if (filesData == null)
                 {
-                    //parse MyWallet.wallet.json  to "MyWallet"
-                    string walletName = wallet.Substring(0, wallet.IndexOf("."));
+                    _Error_FS_Info = true; //an error occured, this data is relied upon in the "RefreshNodeData" Method
+                    Logger.Error($"Node '{Name}' ({Address}:{Port}), An Error Occured When Getting Node File Information!");
+                }
+                else
+                {
+                    WalletPath = filesData.walletsPath;
+                    WalletFiles = new List<string>(filesData.walletsFiles);
 
-                    //Get a list of accounts
-                    List<string> walletAccounts = await _RestClient.GetWalletAccounts(walletName);
-
-                    if (walletAccounts == null) { Logger.Warn($"An Error Occured When Trying To Get Wallet Accounts For Wallet '{walletName}'"); }
-                    if (walletAccounts.Count > 0)
+                    foreach (string wallet in WalletFiles)
                     {
-                        //Are there already present wallets? if so overwrite the data, if not then lets add a new record
-                        if (WalletAccounts.ContainsKey(walletName)) { WalletAccounts[walletName] = walletAccounts; }
-                        else { WalletAccounts.Add(walletName, walletAccounts); }
-                    }//end of if(walletAccounts.Count > 0)
+                        //parse MyWallet.wallet.json  to "MyWallet"
+                        string walletName = wallet.Substring(0, wallet.IndexOf("."));
 
-                }//end of foreach
+                        //Get a list of accounts
+                        List<string> walletAccounts = await _RestClient.GetWalletAccounts(walletName);
 
-                _Error_FS_Info = false;
-            }//end of if-else if (filesData == null)
+                        if (walletAccounts == null) { Logger.Warn($"An Error Occured When Trying To Get Wallet Accounts For Wallet '{walletName}'"); }
+                        if (walletAccounts.Count > 0)
+                        {
+                            //Are there already present wallets? if so overwrite the data, if not then lets add a new record
+                            if (WalletAccounts.ContainsKey(walletName)) { WalletAccounts[walletName] = walletAccounts; }
+                            else { WalletAccounts.Add(walletName, walletAccounts); }
+                        }//end of if(walletAccounts.Count > 0)
+
+                    }//end of foreach
+
+                    _Error_FS_Info = false;
+                }//end of if-else if (filesData == null)
+            }
+            catch (HttpRequestException ex) //API is not accessible or responding
+            {
+                OnDisconnected(Address, Port);
+                Logger.Fatal($"Node '{Name}' ({Address}:{Port}) Something Happened & The Node API Is Not Accessible", ex);
+            }
+            catch (Exception ex)
+            {
+                Logger.Fatal($"Node '{Name}' ({Address}:{Port}) An Error Occured When Polling For Static Data!", ex);
+            }//end of try-catch
 
         }//end of private async void GetStaticData()
 
@@ -132,7 +168,8 @@ namespace x42Client
                        if(_RestClient != null) { _RestClient.Dispose(); }
                        if(_SSHForwardPort != null)
                         {
-                            _SSHForwardPort.Stop();
+                            _SSHClient?.RemoveForwardedPort(_SSHForwardPort);                     
+                            
                             _SSHForwardPort.Dispose();
                         }//end of if(_SSHForwardPort != null)
 
