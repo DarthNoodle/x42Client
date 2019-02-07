@@ -40,9 +40,6 @@ namespace x42Client
             if(statusData == null) { Logger.Error($"Node '{Name}' ({Address}:{Port}) An Error Occured Getting Node Status!"); }
             else
             {
-                //update a list of peers
-                Peers = statusData.outboundPeers.ToPeersList();
-                Peers.AddRange(statusData.inboundPeers.ToPeersList());
 
                 //we have a new block, so fire off an event
                 if (statusData.consensusHeight > BlockTIP) { OnNewBlock(statusData.consensusHeight); }
@@ -56,6 +53,15 @@ namespace x42Client
                 ProtocolVersion = $"{statusData.protocolVersion}";
                 IsTestNet = statusData.testnet;
             }//end of if(statusData == null)
+
+
+            //update a list of peers
+            List<GetPeerInfoResponse> peersResponse = await _RestClient.GetPeerInfo();
+            if(peersResponse == null) { Logger.Error($"Node '{Name}' ({Address}:{Port}) An Error Occured Getting The Node Peer List!"); }
+            else
+            {
+                Peers = peersResponse.ToPeersList();
+            }//end of if-else (_Peers == null)
 
 
             //############  TX History Processing #################

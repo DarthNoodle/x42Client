@@ -69,18 +69,23 @@ namespace x42Client.Utils.Extensions
         /// <summary>
         /// Converts the API Peer List Data Structure To A More Friendly One
         /// </summary>
-        public static List<Peer> ToPeersList(this Outboundpeer[] data)
+        public static List<Peer> ToPeersList(this List<GetPeerInfoResponse> data)
         {
             List<Peer> peers = new List<Peer>();
 
 
-            foreach (Outboundpeer peer in data)
+            foreach (GetPeerInfoResponse peer in data)
             {
                 peers.Add(new Peer
                 {
-                    Address = peer.remoteSocketEndpoint,
-                    Version = peer.version,
-                    TipHeight = peer.tipHeight
+                    Address = peer.addr,
+                    ProtocolVersion = peer.version,
+                    Version = peer.subver,
+                    TipHeight = peer.startingheight,
+                    WillRelayTXs = peer.relaytxes,
+                    BanScore = peer.banscore,
+                    InboundConnection = peer.inbound,
+                    Services = peer.services
                 });
             }//end of foreach
 
